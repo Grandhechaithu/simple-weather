@@ -1,33 +1,36 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'simple-weather-app'
+        CONTAINER_NAME = 'weather-container'
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Grandhechaithu/simple-weather.git'
+                git branch: 'main', url: 'https://github.com/Grandhechaithu/simple-weather.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    dockerImage = docker.build("simple-weather")
-                }
+                bat 'docker build -t %IMAGE_NAME% .'
             }
         }
 
         stage('Run with Docker Compose') {
             steps {
-                sh 'docker-compose down || true'
-                sh 'docker-compose up -d --build'
+                bat 'docker-compose down'
+                bat 'docker-compose up -d'
             }
         }
     }
 
     post {
         always {
-            echo "Cleaning up old containers..."
-            sh 'docker system prune -f'
+            echo 'Cleaning up old containers...'
+            bat 'docker-compose down'
         }
     }
 }
